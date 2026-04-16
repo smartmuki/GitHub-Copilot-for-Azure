@@ -258,3 +258,56 @@ New reference doc covering:
 | Approach for modifying customer Bicep/Terraform | P2-G3, P4-G2 |
 | Required parameters to inject for each template | P4-G1 |
 | Guidance for BYO resources (existing Cosmos DB, Storage, AI Search) | P2-G3 |
+
+---
+
+## Additional Findings — Networking Deep Dive
+
+The following gaps were identified through a customer call involving deeper analysis of VNet sizing, NSG configuration, and subnet exclusivity constraints. These are not covered in any template doc.
+
+### VNet Sizing — No Guidance Exists
+
+The skill docs specify `/24` per subnet but provide **no guidance on overall VNet sizing based on workload**. Key gaps:
+
+| Gap ID | Gap | Severity | Details |
+|--------|-----|----------|---------|
+| NET-G1 | No VNet sizing recommendations | **High** | Templates default to `192.168.0.0/16` but enterprise customers with existing networks need to carve address space. No guidance on how many IPs are needed or why `/24` is the minimum. |
+| NET-G2 | No multi-account VNet planning | **High** | Each Foundry account needs its own exclusive agent subnet. If a customer plans to run multiple Foundry accounts on the same VNet, they need to plan for multiple `/24` agent subnets — this is never mentioned. |
+| NET-G3 | PE subnet oversized with no explanation | **Low** | PE subnet is `/24` (254 usable IPs) but a standard Foundry setup only creates 4–6 private endpoints. A `/27` or `/28` would suffice. No sizing rationale is provided. |
+
+**Sizing reference (not in skill docs):**
+
+| Template | Subnets | Min VNet Size | Breakdown |
+|----------|---------|---------------|-----------|
+| Private Basic (no agents) | 1 (PE) | `/24` | 1× `/24` PE subnet |
+| Private Standard (T15) | 2 | `/23` | 1× `/24` agent + 1× `/24` PE |
+| Private + APIM (T16) | 2 | `/23` | Same as T15 |
+| Private + UAI (T17) | 2 | `/23` | Same as T15 |
+| Hybrid + MCP (T19) | 3 | `/22` | 1× `/24` agent + 1× `/24` PE + 1× `/24` MCP |
+| Managed VNet (T18) | 1 (PE) | `/24` | Azure manages agent subnet internally |
+
+### NSG / Security Group Configuration — Almost Entirely Missing
+
+| Gap ID | Gap | Severity | Details |
+|--------|-----|----------|---------|
+| NET-G4 | No NSG rules documented for agent subnet | **Critical** | The BYO VNet comparison table (T18) says "Customer controls NSGs" for BYO templates, but no BYO template doc specifies what NSG rules are required. Enterprise customers with existing NSG policies will hit connectivity failures post-deployment. |
+| NET-G5 | No Container Apps networking requirements referenced | **High** | The agent subnet is delegated to `Microsoft.App/environments`, which has [specific firewall/NSG requirements](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration). None of the skill docs reference this. |
+| NET-G6 | No outbound dependency list for BYO VNet | **High** | For BYO VNet templates, required outbound connectivity (Azure management plane, DNS, Azure services) is never documented. Only Managed VNet (T18) mentions outbound rules (via `az rest`). |
+| NET-G7 | No inbound rule guidance | **Medium** | No documentation on what inbound traffic the agent subnet needs (VNet-internal traffic, Azure Load Balancer probes, etc.). |
+
+### Agent Subnet Exclusivity — Constraints Not Fully Explained
+
+| Gap ID | Gap | Severity | Details |
+|--------|-----|----------|---------|
+| NET-G8 | Exclusivity constraint not explained | **Medium** | Docs say "Agent subnet must be exclusive to one Foundry account" but don't explain that this is a Container Apps delegation constraint — no other container services (ACI, AKS, other Container Apps environments) can run on this subnet. |
+| NET-G9 | No guidance for additional container workloads | **Medium** | Customers needing MCP servers, custom APIs, or other container workloads alongside Foundry have no guidance on subnet planning. Only T19 (Hybrid) addresses MCP with a separate subnet. |
+
+### Recommended Additions
+
+These gaps should be addressed in **Workstream 2 (Template Doc Enrichment)** by adding to each BYO VNet template:
+
+| Section | Content |
+|---------|---------|
+| **"VNet Sizing"** | Minimum VNet size, per-subnet sizing rationale, multi-account planning guidance |
+| **"NSG Requirements"** | Required inbound/outbound rules per subnet, link to Container Apps firewall requirements |
+| **"Subnet Constraints"** | Explain delegation exclusivity, no shared container workloads, one Foundry account per agent subnet |
