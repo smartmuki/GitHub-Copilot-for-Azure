@@ -50,6 +50,19 @@ param apiManagementResourceId string = '/subscriptions/{sub}/resourceGroups/{rg}
 
 > ⚠️ **Warning:** Capability host provisioning is **asynchronous** (10–20 minutes). Poll deployment status until success before proceeding.
 
+## Expected Resource Progression
+
+1. `Microsoft.Network/virtualNetworks` (2 subnets: agent, PE) → Succeeded
+2. `Microsoft.CognitiveServices/accounts` → Succeeded
+3. `Microsoft.Search/searchServices` → Succeeded
+4. `Microsoft.Storage/storageAccounts` → Succeeded
+5. `Microsoft.DocumentDB/databaseAccounts` → Succeeded
+6. `Microsoft.Network/privateEndpoints` (×5 + APIM PE if provided) → Succeeded
+7. `Microsoft.MachineLearningServices/workspaces` (project) → Succeeded
+8. `Microsoft.MachineLearningServices/workspaces/capabilityHosts` → Succeeded (async — takes longest)
+
+DNS zones: 7 zones including `privatelink.azure-api.net` for APIM.
+
 ## Post-Deployment
 
 1. **Deploy a model** to the new AI Services account (e.g., `gpt-4o`). Fall back to `Standard` SKU if `GlobalStandard` quota is exhausted.
