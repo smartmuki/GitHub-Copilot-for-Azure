@@ -114,6 +114,8 @@ Present the match result to the user. Ask: **"Does this match your requirements?
 
 > Do NOT proceed until the user confirms.
 
+After template is confirmed, load [requirement-gathering.md](requirement-gathering.md) to complete enterprise requirement intake before Plan Generation.
+
 ---
 
 ## Step 2 — Plan Generation
