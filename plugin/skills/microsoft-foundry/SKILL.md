@@ -4,7 +4,7 @@ description: "Deploy, evaluate, and manage Foundry agents end-to-end: Docker bui
 license: MIT
 metadata:
   author: Microsoft
-  version: "1.0.10"
+  version: "1.0.11"
 ---
 
 # Microsoft Foundry Skill
@@ -45,7 +45,7 @@ Match user intent to the correct infrastructure workflow.
 
 | User Intent | Workflow |
 |-------------|---------|
-| "Create Foundry" / "Set up Foundry" (ambiguous) | Ask: (a) just an AI Services resource, (b) a project with public access, or (c) a project with network isolation? Route: (a) → [resource/create](resource/create/create-foundry-resource.md), (b) → [project/create](project/create/create-foundry-project.md), (c) → [private-network](resource/private-network/private-network.md) |
+| "Create Foundry" / "Set up Foundry" (ambiguous) | Use `AskUserQuestion`: (a) just an AI Services resource, (b) a project with public access, or (c) a project with network isolation? Route: (a) → [resource/create](resource/create/create-foundry-resource.md), (b) → [project/create](project/create/create-foundry-project.md), (c) → [private-network](resource/private-network/private-network.md) |
 | Set up Foundry with VNet isolation | [private-network](resource/private-network/private-network.md) |
 | Create a Foundry project (public) | [project/create](project/create/create-foundry-project.md) |
 | Create a bare Foundry resource | [resource/create](resource/create/create-foundry-resource.md) |

@@ -41,6 +41,23 @@ Execute steps in order.
 
 ## Step 1 — Information Gathering
 
+### 1.0 Verify Subscription
+
+Verify the active Azure subscription before proceeding:
+
+```bash
+az account show --query "{Name:name, Id:id, State:state}" -o table
+```
+
+Use `AskUserQuestion`: **"Is this the correct subscription for deployment? If not, type the subscription name or ID to switch to."**
+Options: `Yes, this is correct`
+
+If the user provides a different subscription name or ID:
+
+```bash
+az account set --subscription "<name-or-id-provided-by-user>"
+```
+
 ### 1.1 Extract Known Answers
 
 Before asking questions, scan the user's message for implicit answers:
@@ -120,6 +137,8 @@ After template is confirmed, load [requirement-gathering.md](requirement-gatheri
 
 ## Step 2 — Plan Generation
 
+Use the confirmed Requirements Summary from [requirement-gathering.md](requirement-gathering.md) as the input for the plan. Incorporate topology (R1), DNS (R3), NSG (R5), client access (R14-R15), IaC path (R17), and any blockers from Section 7 into the plan.
+
 Read the selected template's reference doc:
 
 | Template | Reference |
@@ -144,16 +163,26 @@ Present to the user:
 
 ## Step 3 — Scaffold & Parameterize
 
-Fetch the Bicep template from the GitHub URL in the template reference doc (loaded in Step 2). Create the files in the user's workspace (e.g., `infra/` folder).
+Fetch the Bicep template from the GitHub URL in the template reference doc (loaded in Step 2). Fetch the **entire template folder** including subdirectories (e.g., `modules-network-secured/`). Create the files in the user's workspace (e.g., `infra/` folder).
 
-Set parameter values in `main.bicepparam` using answers from Step 1:
+> ⚠️ Do NOT download only `main.bicep` and `main.bicepparam` — the template depends on module files in subdirectories. Use the GitHub API contents endpoint to list and download all files recursively.
+
+Set parameter values in `main.bicepparam` using answers from Step 1 and the Requirements Summary:
 
 | Parameter | Source |
 |-----------|--------|
 | Location | Q6 (or inferred from existing VNet) |
 | VNet name / resource ID | Q8 |
-| VNet address space, subnet CIDRs | Q8 |
-| Existing Cosmos DB / Storage / AI Search IDs | Q9 (if BYO) |
+| VNet address space | R4 (or Q8 default `192.168.0.0/16`) |
+| Subnet CIDRs | Q8 |
+| Existing Cosmos DB / Storage / AI Search IDs | Q9 / R10 (if BYO) |
+| Isolation mode (T18 only) | R1M-b (`AllowOnlyApprovedOutbound` or `AllowInternetOutbound`) |
+| Model name, version, format | R12, R13 |
+| `disableLocalAuth` | R19 (set to `true` if Azure Policy requires it) |
+
+If R17 = `Adapt Bicep into existing repo`, copy the relevant resources into the customer's existing templates instead of using the official template directly.
+
+If R18 = `No GitHub access`, the template must already be present in the workspace. Do NOT attempt to fetch from GitHub.
 
 > Do NOT run `az deployment group create` yet — validate first.
 
@@ -167,7 +196,20 @@ Before deploying, check all of these. Catch blockers **before** investing in a d
 
 **Azure Policy:** Run `az deployment group what-if` to catch policy violations (e.g., `disableLocalAuth`, `defaultOutboundAccess`) before actual deployment.
 
-**Quota:** Check AI Services, Cosmos DB, Storage, and Search quotas in the target region.
+**Quota & Resource Availability:** Check resource availability in the target region before deploying:
+
+```bash
+# Model quota
+az cognitiveservices usage list --location <region> -o table
+
+# AI Search availability
+az search service list-sku --location <region> -o table
+
+# Check if region has capacity for Cognitive Services
+az cognitiveservices account list-skus --location <region> --kind AIServices -o table
+```
+
+If you get `ResourcesForSkuUnavailable` or `InsufficientResourcesAvailable`, the region lacks capacity — suggest a different region to the user. Run `az deployment group what-if` to catch these before the actual deployment.
 
 **Provider Registrations:** Verify `Microsoft.CognitiveServices`, `Microsoft.DocumentDB`, `Microsoft.Search`, `Microsoft.Network` are registered.
 

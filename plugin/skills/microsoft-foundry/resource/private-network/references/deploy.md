@@ -63,6 +63,8 @@ az deployment operation group list \
 
 | Error | Root Cause | Fix |
 |-------|-----------|-----|
+| `ResourcesForSkuUnavailable` | Region lacks capacity for the requested SKU | Try a different region or SKU tier |
+| `InsufficientResourcesAvailable` | Region out of resources for provisioning | Try a different region |
 | `DeploymentModelNotSupported` | Wrong `modelVersion` format for vendor | Query model catalog; use integer version for Mistral AI / Meta |
 | `legionservicelink` / subnet in use | Orphaned service link from prior attempt | Use a new `vnetName` — do not reuse the prior VNet |
 | `AuthorizationFailed` on `validate/action` | Missing Contributor role | Assign Contributor + User Access Administrator to deploying identity |
