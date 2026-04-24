@@ -6,7 +6,7 @@
 
 Two parallel skill efforts existed for Foundry private networking:
 
-1. **General Q&A skill** (`private-network`) — Answers customer questions about Foundry networking concepts: VNet isolation patterns, private endpoints, subnet delegation, DNS, firewall rules, etc.
+1. **General Q&A skill** — Answers customer questions about Foundry networking concepts: VNet isolation patterns, private endpoints, subnet delegation, DNS, firewall rules, etc.
 2. **Deployment skill** (part of `microsoft-foundry`) — Guides users through deploying Foundry infrastructure using official Bicep templates, including 7 templates covering public, BYO VNet, Managed VNet, APIM, UAI, and hybrid patterns.
 
 We took both skills and tested them across three areas before making changes.
