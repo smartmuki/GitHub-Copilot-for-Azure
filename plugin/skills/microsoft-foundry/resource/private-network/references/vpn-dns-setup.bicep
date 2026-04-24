@@ -78,12 +78,6 @@ resource vpnGatewayPip 'Microsoft.Network/publicIPAddresses@2024-05-01' = {
   zones: ['1', '2', '3']
   properties: {
     publicIPAllocationMethod: 'Static'
-    ipTags: [
-      {
-        ipTagType: 'FirstPartyUsage'
-        tag: '/NonProd'
-      }
-    ]
   }
 }
 
