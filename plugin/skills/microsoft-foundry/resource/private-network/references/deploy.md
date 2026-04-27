@@ -1,6 +1,6 @@
-# Deploy & Track — Common Reference
+# Deploy & Track
 
-Applies to all private network template deployments (T10, T15–T19).
+Applies to all private network deployments.
 
 ## Deploy
 
@@ -59,13 +59,9 @@ az deployment operation group list \
   -o json
 ```
 
-### Step 2 — Map to known fix
+### Step 2 — Resolve
 
-| Error | Root Cause | Fix |
-|-------|-----------|-----|
-| `ResourcesForSkuUnavailable` | Region lacks capacity for the requested SKU | Try a different region or SKU tier |
-| `InsufficientResourcesAvailable` | Region out of resources for provisioning | Try a different region |
-| `DeploymentModelNotSupported` | Wrong `modelVersion` format for vendor | Query model catalog; use integer version for Mistral AI / Meta |
+Use `microsoft_docs_search` with the error code or message to find current remediation. The legionservicelink retry rule is documented in the main workflow's Error Handling section.
 | `legionservicelink` / subnet in use | Orphaned service link from prior attempt | Use a new `vnetName` — do not reuse the prior VNet |
 | `AuthorizationFailed` on `validate/action` | Missing Contributor role | Assign Contributor + User Access Administrator to deploying identity |
 | `SubnetDelegationAlreadyExists` | Agent subnet already delegated to another resource | Use a new VNet or open a support ticket to remove the delegation |

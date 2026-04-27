@@ -1,6 +1,6 @@
 ---
 name: private-network
-description: "Answer questions about and deploy Microsoft Foundry with network isolation. Covers BYO VNet, Managed VNet, hybrid patterns, private endpoints, and Bicep deployment. WHEN: 'Foundry networking', 'BYO VNet vs managed VNet', 'deploy Foundry in private VNet', 'private endpoints for Foundry'. DO NOT USE FOR: generic Azure networking without Foundry (use azure-enterprise-infra-planner)."
+description: "Answer questions about and deploy Microsoft Foundry with network isolation. Covers BYO VNet, Managed VNet, hybrid patterns, private endpoints, and Bicep deployment. WHEN: 'Foundry networking', 'BYO VNet vs managed VNet', 'deploy Foundry in private VNet', 'private endpoints for Foundry'. DO NOT USE FOR: generic Azure networking without Foundry."
 license: MIT
 allowed-tools: Read, Write, Bash, AskUserQuestion, microsoft_docs_search, microsoft_docs_fetch
 metadata:
@@ -10,114 +10,96 @@ metadata:
 
 # Microsoft Foundry Private Networking
 
-Answer questions about and deploy Microsoft Foundry with network isolation. Covers architecture concepts, deployment patterns (BYO VNet, Managed VNet, Hub-Spoke, hybrid), and end-to-end Bicep deployment.
-
 ## Quick Reference
 
 | Property | Value |
 |----------|-------|
 | **Best for** | Foundry with VNet isolation, private endpoints, subnet delegation, APIM + Foundry, VPN/Bastion access |
-| **Tools** | Azure CLI (`az deployment group create`, `az deployment group what-if`), `AskUserQuestion`, `microsoft_docs_search`, `microsoft_docs_fetch` |
+| **Tools** | Azure CLI |
+| **MCP Tools** | `AskUserQuestion` - ask user questions; `microsoft_docs_search` - verify facts before presenting; `microsoft_docs_fetch` - fetch full Learn pages for validation |
 | **Workflow** | Ground in Learn → Gather → Plan → Scaffold → Validate → Deploy → Test |
+
+### Key Documentation
+
+| Topic | URL |
+|-------|-----|
+| Network isolation | https://learn.microsoft.com/azure/ai-foundry/how-to/configure-private-link |
+| Agent Service VNet | https://learn.microsoft.com/azure/ai-services/agents/how-to/virtual-networks |
+| Managed VNet | https://learn.microsoft.com/azure/ai-foundry/how-to/configure-managed-network |
+| Feature limitations | https://learn.microsoft.com/azure/foundry/how-to/configure-private-link#foundry-feature-limitations |
 
 ## When to Use
 
-- User has general questions regarding Foundry in isolated network
-- User needs Foundry with VNet isolation or private endpoints
+- User asks about Foundry networking, private endpoints, or VNet isolation
+- User asks about BYO VNet, Managed VNet, or hybrid patterns
 - User wants to deploy Foundry agents in a private network
-- User asks about BYO VNet, Managed VNet, or hybrid private networking
-- User needs private endpoints for Cosmos DB, Storage, AI Search behind a VNet
 - User needs APIM integration with private Foundry agents
 
 **Do NOT use for:**
 - Public Foundry setup without VNet → use [project/create](../../project/create/create-foundry-project.md)
 - Bare Foundry resource without networking → use [resource/create](../create/create-foundry-resource.md)
 
-## Workflow
-
 ---
 
-## Step 0 — Ground Every Answer in Microsoft Learn
-
-To answer user's questions about VNET configuration, private endpoints, NSP, or managed VNET for Microsoft Foundry:
-
-- `microsoft_docs_search` — for targeted queries (returns up to 10 relevant excerpts, ~500 tokens each)
-- `microsoft_docs_fetch` — for full pages when you need complete procedures or detailed reference
-
-**Rules:** Cite the Learn URL in your answer. If Learn does not cover the question, say so explicitly — do not invent facts, limits, flags, or compatibility claims.
+## Step 0 — Ground in Microsoft Learn
+Use `microsoft_docs_fetch` to get docs from Key Documentation sources.
+Use `microsoft_docs_search` to verify any technical fact before presenting it to the user. If Learn contradicts a reference file, **Learn wins**. Cite the URL. If Learn doesn't cover it, say so — do not invent facts, limits, flags, or compatibility claims.
 
 ---
 
 ## End-to-End Deployment Workflow
 
-> **Important:** When the user decides to deploy Foundry in an isolated network, all following steps are mandatory. Communicate the steps and plan with the user before acting.
+> **Important:** All following steps are mandatory. Communicate the plan with the user before acting.
 
-## Step 1 — Information Gathering
+## Step 1 — Gather Requirements
 
-Read [references/information-gathering.md](references/information-gathering.md). It covers subscription verification, architecture questions (VNet management, agents, MCP, APIM, identity), deployment inputs (region, resource group, VNet, BYO resources), region validation, and template matching.
+Read [references/intake.md](references/intake.md). One pass, three tiers:
+- **Tier 1 (Core):** Subscription, VNet model, agents, region, RG, VNet — determine approach at the end
+- **Tier 2 (Architecture):** DNS, topology, NSG, on-prem, identity, BYO resources
+- **Tier 3 (Enterprise):** Model, client access, auth, policies, monitoring
 
-After the user confirms the template match, load [requirement-gathering.md](requirement-gathering.md) to complete enterprise requirement intake before Plan Generation.
+Determine the approach (official template / adapt closest / extend user’s IaC) at the end of Tier 1. Continue through Tiers 2–3.
 
 ---
 
 ## Step 2 — Plan Generation
 
-Use the confirmed Requirements Summary from [requirement-gathering.md](requirement-gathering.md) as the input for the plan. Incorporate VNet topology, DNS strategy, NSG/firewall rules, client access method, IaC path, and any blockers from the Requirements Summary into the plan.
+Use the confirmed requirements from [references/intake.md](references/intake.md).
 
-Read the selected template's reference doc:
+**OFFICIAL path:** Load the template's README from its GitHub URL (via [references/template-index.md](references/template-index.md)). Run `microsoft_docs_search` for its prerequisites. Present a deployment plan using the user's actual values.
 
-| Template | Reference |
-|----------|-----------|
-| T10 | [private-network-basic.md](../../references/private-network-basic.md) |
-| T15 | [private-network-standard-agent-setup.md](../../references/private-network-standard-agent-setup.md) |
-| T16 | [private-network-standard-agent-apim-setup.md](../../references/private-network-standard-agent-apim-setup.md) |
-| T17 | [private-network-uai-agent-setup.md](../../references/private-network-uai-agent-setup.md) |
-| T18 | [managed-virtual-network-agent-setup.md](../../references/managed-virtual-network-agent-setup.md) |
-| T19 | [hybrid-private-resources-agent-setup.md](../../references/hybrid-private-resources-agent-setup.md) |
+**ADAPT path:** Load the closest template's README. Present a deployment plan highlighting what will be modified from the base template.
 
-Always present to the user:
-1. A text-based architecture overview showing VNet, subnets, private endpoints, resources, DNS zones, and access method — use the user's actual values
-2. Resources that will be created
-3. Deployment order: VNet + subnets → dependent resources → PEs + DNS → capability host → model
-4. RBAC prerequisites (Owner, or Contributor + UAA)
-5. DNS zones that will be created
-6. Any known caveats (preview status, feature flag requirements)
-7. Estimated deployment time
+**EXTEND path:** Load [references/custom-template-adaptation.md](references/custom-template-adaptation.md). Read the user's existing template. Follow the gap analysis framework to present what's covered, what's missing, and any issues. Get approval before modifying.
+
+Get confirmation before proceeding.
 
 ---
 
 ## Step 3 — Scaffold & Parameterize
 
-Read [references/scaffold.md](references/scaffold.md). It covers template, parameter wiring in `main.bicepparam`, and adapt-vs-fetch handling based on IaC path and GitHub-access answers.
+Read [references/scaffold.md](references/scaffold.md).
 
 ---
 
 ## Step 4 — Pre-Deployment Validation
 
-Before deploying, check all of these. Catch blockers **before** investing in a deployment.
+Catch blockers **before** deploying. These checks apply to all paths.
 
-**Sovereign cloud:** Run `az cloud show --query name -o tsv`. If it returns `AzureUSGovernment` or `AzureChinaCloud`, warn the user only if using official templates: the official private-network Bicep templates hardcode `core.windows.net` and Azure Public AAD endpoints, and do not support sovereign clouds today. Stop and escalate.
+**Sovereign cloud:** Run `az cloud show --query name -o tsv`. If `AzureUSGovernment` or `AzureChinaCloud`, check whether the templates being used (official or user-provided) handle sovereign cloud endpoints. Official templates hardcode `core.windows.net` and Azure Public AAD endpoints.
 
-**RBAC:** Verify deploying identity has Owner, or Contributor + User Access Administrator on the resource group.
+**RBAC:** Verify deploying identity has Owner, or Contributor + User Access Administrator.
 
-**Azure Policy:** Run `az deployment group what-if` to catch policy violations (e.g., `disableLocalAuth`, `defaultOutboundAccess`) before actual deployment.
+**Policy:** Run `az deployment group what-if`. Fix any violations before deploying.
 
-**Quota & Resource Availability:** Check resource availability in the target region before deploying (commands below work in both Bash and PowerShell):
+**Quota:**
 
 ```bash
-# Model quota
-az cognitiveservices usage list --location <region> -o table
-
-# AI Search availability
-az search service list-sku --location <region> -o table
-
-# Check if region has capacity for Cognitive Services
 az cognitiveservices account list-skus --location <region> --kind AIServices -o table
+az search service list-sku --location <region> -o table
 ```
 
-If you get `ResourcesForSkuUnavailable` or `InsufficientResourcesAvailable`, the region lacks capacity — suggest a different region to the user. Run `az deployment group what-if` to catch these before the actual deployment.
-
-**Provider Registrations:** Verify `Microsoft.CognitiveServices`, `Microsoft.DocumentDB`, `Microsoft.Search`, `Microsoft.Network` are registered.
+**Provider Registrations:** `Microsoft.CognitiveServices`, `Microsoft.DocumentDB`, `Microsoft.Search`, `Microsoft.Network`.
 
 **Feature Flags:** For Managed VNet — verify `AI.ManagedVnetPreview` is registered.
 
@@ -127,33 +109,22 @@ If you get `ResourcesForSkuUnavailable` or `InsufficientResourcesAvailable`, the
 
 ## Step 5 — Deploy & Track
 
-Read [references/deploy.md](references/deploy.md) for deployment command, polling strategy, and error recovery. For expected resource progression specific to your template, refer to the template reference doc loaded in Step 2.
+**OFFICIAL / ADAPT path:** Read [references/deploy.md](references/deploy.md) for deployment command, monitoring, and error recovery.
+
+**EXTEND path:** Deploy using the user's existing deployment workflow (their CLI commands, pipeline, or CI/CD). The monitoring and error recovery guidance in [references/deploy.md](references/deploy.md) still applies.
 
 ---
 
 ## Step 6 — Test & Validate
 
-> **Detailed reference:** Read [references/post-deployment-validation.md](references/post-deployment-validation.md) for PE verification, DNS resolution checks, RBAC audit, `publicNetworkAccess` audit, requirements cross-check, and end-to-end agent test.
+Read [references/post-deployment-validation.md](references/post-deployment-validation.md). These checks apply to all paths — PE verification, RBAC audit, `publicNetworkAccess` audit, and end-to-end agent test work regardless of how the infrastructure was deployed.
+
+If any test fails, run `microsoft_docs_search` for the error before attempting remediation.
 
 ---
 
 ## Error Handling
 
-| Error | Step | Remediation |
-|-------|------|-------------|
-| No matching template | 1 | Suggest closest template and explain what's different |
-| Missing inputs | 1 | Ask missing questions before proceeding |
-| `what-if` shows policy violation | 4 | Fix Bicep params (e.g., `disableLocalAuth: true`), re-run |
-| Deployment fails mid-way | 5 | Use new VNet name on retry, see deploy.md error recovery |
-| PE/DNS verification fails | 6 | Check resource provisioning state, re-run failed resources |
+> ⚠️ **Critical retry rule:** If a deployment fails after the capability host step starts, the agent subnet gets a `legionservicelink` that cannot be removed. On retry, always use a **new VNet name** — never reuse the same agent subnet. See [references/deploy.md](references/deploy.md).
 
----
-
-## Documentation Resources
-
-| Topic | Link |
-|-------|------|
-| Network isolation overview | [Configure network isolation for Foundry](https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/configure-private-link) |
-| Agent Service private networking | [Set up private networking for Agent Service](https://learn.microsoft.com/en-us/azure/ai-services/agents/how-to/virtual-networks) |
-| Managed VNet (classic) | [Configure managed virtual network](https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/configure-managed-network) |
-| Agent Service FAQ — VNet | [Agent FAQ — Virtual Networking](https://learn.microsoft.com/en-us/azure/foundry/agents/faq#virtual-networking) |
+For all other errors, check `microsoft_docs_search` for current remediation before acting.
