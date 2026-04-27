@@ -79,6 +79,27 @@ describe(`${SKILL_NAME} - Trigger Tests`, () => {
     );
   });
 
+  describe("Should Trigger - Private Network Sub-Skill", () => {
+    // Prompts covering private-network sub-skill Q&A + deployment
+    const vnetTriggerPrompts: string[] = [
+      "How does Foundry networking work?",
+      "BYO VNet vs managed VNet in Foundry",
+      "Explain Foundry private endpoints",
+      "Deploy Foundry in a private VNet",
+      "Set up network isolation for my Foundry agents",
+      "Deploy Foundry with managed virtual network",
+    ];
+
+    test.each(vnetTriggerPrompts)(
+      'triggers on VNet prompt: "%s"',
+      (prompt) => {
+        const result = triggerMatcher.shouldTrigger(prompt);
+        expect(result.triggered).toBe(true);
+        expect(result.matchedKeywords.length).toBeGreaterThanOrEqual(2);
+      }
+    );
+  });
+
   describe("Should NOT Trigger", () => {
     // Prompts that should NOT trigger - completely unrelated topics
     const shouldNotTriggerPrompts: string[] = [
