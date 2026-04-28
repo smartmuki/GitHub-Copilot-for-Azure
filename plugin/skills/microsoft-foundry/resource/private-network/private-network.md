@@ -96,7 +96,6 @@ Catch blockers **before** deploying. These checks apply to all paths.
 
 ```bash
 az cognitiveservices account list-skus --location <region> --kind AIServices -o table
-az search service list-sku --location <region> -o table
 ```
 
 **Provider Registrations:** `Microsoft.CognitiveServices`, `Microsoft.DocumentDB`, `Microsoft.Search`, `Microsoft.Network`.

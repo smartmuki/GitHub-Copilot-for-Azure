@@ -82,7 +82,7 @@ describe(`${SKILL_NAME} - Trigger Tests`, () => {
   describe("Should Trigger - Private Network Sub-Skill", () => {
     // Prompts covering private-network sub-skill Q&A + deployment
     const vnetTriggerPrompts: string[] = [
-      "How does Foundry networking work?",
+      "How does Foundry VNet isolation work?",
       "BYO VNet vs managed VNet in Foundry",
       "Explain Foundry private endpoints",
       "Deploy Foundry in a private VNet",
@@ -112,6 +112,9 @@ describe(`${SKILL_NAME} - Trigger Tests`, () => {
       "How do I write Python code?", // Generic programming
       "How do I configure a timer-based cron job in my web app?", // Use azure-functions
       "Host my static website on a cloud platform", // Use azure-create-app
+      "How do I create a virtual network for my web app?", // Generic Azure networking — no Foundry
+      "Set up VNet peering between two subscriptions", // Generic Azure networking
+      "Configure private endpoints for my Azure SQL database", // Private endpoints but not Foundry
     ];
 
     test.each(shouldNotTriggerPrompts)(

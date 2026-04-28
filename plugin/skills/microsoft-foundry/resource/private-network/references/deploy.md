@@ -62,6 +62,9 @@ az deployment operation group list \
 ### Step 2 — Resolve
 
 Use `microsoft_docs_search` with the error code or message to find current remediation. The legionservicelink retry rule is documented in the main workflow's Error Handling section.
+
+| Error | Likely cause | Fix |
+|-------|-------------|-----|
 | `legionservicelink` / subnet in use | Orphaned service link from prior attempt | Use a new `vnetName` — do not reuse the prior VNet |
 | `AuthorizationFailed` on `validate/action` | Missing Contributor role | Assign Contributor + User Access Administrator to deploying identity |
 | `SubnetDelegationAlreadyExists` | Agent subnet already delegated to another resource | Use a new VNet or open a support ticket to remove the delegation |
