@@ -21,7 +21,7 @@ Deploys a network-secured agent environment using a **Managed Virtual Network** 
 ## Prerequisites
 
 1. **Register for preview:** Enable feature flag `AI.ManagedVnetPreview` under **Preview Features** in the Azure Portal.
-2. Same RBAC requirements as standard setup (Owner/UAA on resource group).
+2. **RBAC:** Owner, or Contributor + User Access Administrator (both roles) on the resource group. UAA alone is not sufficient.
 3. Azure CLI required for outbound rule management (`az rest` commands).
 
 ## Limitations
@@ -52,9 +52,21 @@ Deploys a network-secured agent environment using a **Managed Virtual Network** 
 
 > ⚠️ **Warning:** Capability host provisioning is **asynchronous** (10–20 minutes). Poll deployment status until success before proceeding.
 
+## Expected Resource Progression
+
+1. `Microsoft.Network/virtualNetworks` (1 subnet: PE only, no agent subnet) → Succeeded
+2. `Microsoft.CognitiveServices/accounts` → Succeeded
+3. `Microsoft.Search/searchServices` → Succeeded
+4. `Microsoft.Storage/storageAccounts` → Succeeded
+5. `Microsoft.DocumentDB/databaseAccounts` → Succeeded
+6. Managed network configuration → Succeeded
+7. `Microsoft.Network/privateEndpoints` (×5) → Succeeded
+8. `Microsoft.MachineLearningServices/workspaces` (project) → Succeeded
+9. `Microsoft.MachineLearningServices/workspaces/capabilityHosts` → Succeeded (async — takes longest)
+
 ## Post-Deployment
 
-1. **Deploy a model** to the new AI Services account (e.g., `gpt-5.3`). Fall back to `Standard` SKU if `GlobalStandard` quota is exhausted.
+1. **Deploy a model** to the new AI Services account (e.g., `gpt-4o`). Fall back to `Standard` SKU if `GlobalStandard` quota is exhausted.
 2. **Configure outbound rules** via Azure CLI if needed (see `update-outbound-rules-cli/` in the template folder).
 3. **Create the agent** using MCP tools (`agent_update`) or the Python SDK.
 

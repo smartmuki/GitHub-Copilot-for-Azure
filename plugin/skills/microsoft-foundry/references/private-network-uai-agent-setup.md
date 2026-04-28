@@ -48,6 +48,18 @@ Supports the same BYO parameters as template 15 (existing VNet, Cosmos DB, AI Se
 
 > ⚠️ **Warning:** Capability host provisioning is **asynchronous** (10–20 minutes). Poll deployment status until success before proceeding.
 
+## Expected Resource Progression
+
+1. `Microsoft.ManagedIdentity/userAssignedIdentities` → Succeeded
+2. `Microsoft.Network/virtualNetworks` (2 subnets: agent, PE) → Succeeded
+3. `Microsoft.CognitiveServices/accounts` → Succeeded
+4. `Microsoft.Search/searchServices` → Succeeded
+5. `Microsoft.Storage/storageAccounts` → Succeeded
+6. `Microsoft.DocumentDB/databaseAccounts` → Succeeded
+7. `Microsoft.Network/privateEndpoints` (×5) → Succeeded
+8. `Microsoft.MachineLearningServices/workspaces` (project) → Succeeded
+9. `Microsoft.MachineLearningServices/workspaces/capabilityHosts` → Succeeded (async — takes longest)
+
 ## Post-Deployment
 
 1. **Deploy a model** to the new AI Services account (e.g., `gpt-4o`). Fall back to `Standard` SKU if `GlobalStandard` quota is exhausted.

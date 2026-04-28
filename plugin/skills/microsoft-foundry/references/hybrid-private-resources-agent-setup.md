@@ -67,9 +67,22 @@ See `tests/TESTING-GUIDE.md` in the template folder for details.
 
 > ⚠️ **Warning:** Capability host provisioning is **asynchronous** (10–20 minutes). Poll deployment status until success before proceeding.
 
+## Expected Resource Progression
+
+1. `Microsoft.Network/virtualNetworks` (3 subnets: agent, PE, MCP) → Succeeded
+2. `Microsoft.CognitiveServices/accounts` → Succeeded
+3. `Microsoft.Search/searchServices` → Succeeded
+4. `Microsoft.Storage/storageAccounts` → Succeeded
+5. `Microsoft.DocumentDB/databaseAccounts` → Succeeded
+6. `Microsoft.Network/privateEndpoints` (×5 + Fabric PE if provided) → Succeeded
+7. `Microsoft.MachineLearningServices/workspaces` (project) → Succeeded
+8. `Microsoft.MachineLearningServices/workspaces/capabilityHosts` → Succeeded (async — takes longest)
+
+DNS zones: 7 zones including `privatelink.analysis.windows.net` for Fabric.
+
 ## Post-Deployment
 
-1. **Deploy a model** to the AI Services account (e.g., `gpt-5.3`).
+1. **Deploy a model** to the AI Services account (e.g., `gpt-4o`).
 2. **Create the agent** using MCP tools (`agent_update`) or the Python SDK.
 
 ## References

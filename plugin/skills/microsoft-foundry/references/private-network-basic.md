@@ -42,7 +42,14 @@ az deployment group create --resource-group <rg-name> --template-file main.bicep
 ```
 
 > ⚠️ **Access:** To reach the private Foundry resource, use a VM, VPN, or ExpressRoute on the VNet.
+## Expected Resource Progression
 
+1. `Microsoft.CognitiveServices/accounts` → Succeeded
+2. `Microsoft.Network/virtualNetworks` + subnet → Succeeded
+3. `Microsoft.Network/privateEndpoints` (×1) → Succeeded
+4. `Microsoft.Network/privateDnsZones` (×3) → Succeeded
+5. `Microsoft.CognitiveServices/accounts/deployments` (model) → Succeeded
+6. `Microsoft.CognitiveServices/accounts/projects` → Succeeded
 ## References
 
 - [Configure Private Link for AI Foundry](https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/configure-private-link?tabs=azure-portal&pivots=fdp-project)
